@@ -233,6 +233,8 @@ deck-config-stop-timer-on-answer-tooltip =
 
 ## Auto Advance section
 
+deck-config-auto-advance-what-to-show = Display when flipped
+deck-config-auto-advance-what-to-show-tooltip = Select what will be displayed when auto-advancing: answer or a reminder.
 deck-config-seconds-to-show-question = Seconds to show question for
 deck-config-seconds-to-show-question-tooltip-2 = When auto advance is activated, the number of seconds to wait before revealing the answer. Set to 0 to disable.
 deck-config-seconds-to-show-answer = Seconds to show answer for

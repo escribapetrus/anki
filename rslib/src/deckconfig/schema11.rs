@@ -83,6 +83,8 @@ pub struct DeckConfSchema11 {
     seconds_to_show_answer: f32,
     #[serde(default)]
     answer_action: AnswerAction,
+    #[serde(default)]
+    what_to_show: WhatToShow,
     #[serde(default = "wait_for_audio_default")]
     wait_for_audio: bool,
     #[serde(default)]
@@ -105,6 +107,17 @@ pub enum AnswerAction {
     AnswerHard = 3,
     ShowReminder = 4,
 }
+
+#[derive(Serialize_repr, Deserialize_repr, Debug, PartialEq, Eq, Clone)]
+#[repr(u8)]
+#[derive(Default)]
+pub enum WhatToShow {
+    #[default]
+    Answer = 0,
+    Reminder = 1,
+}
+
+
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -278,6 +291,7 @@ impl Default for DeckConfSchema11 {
             seconds_to_show_question: 0.0,
             seconds_to_show_answer: 0.0,
             answer_action: AnswerAction::BuryCard,
+            what_to_show: WhatToShow::Answer,
             wait_for_audio: true,
             replayq: true,
             dynamic: false,
@@ -365,6 +379,7 @@ impl From<DeckConfSchema11> for DeckConfig {
                 seconds_to_show_question: c.seconds_to_show_question,
                 seconds_to_show_answer: c.seconds_to_show_answer,
                 answer_action: c.answer_action as i32,
+                what_to_show: c.what_to_show as i32,
                 wait_for_audio: c.wait_for_audio,
                 skip_question_when_replaying_answer: !c.replayq,
                 bury_new: c.new.bury,
@@ -429,6 +444,10 @@ impl From<DeckConfig> for DeckConfSchema11 {
                 3 => AnswerAction::AnswerHard,
                 4 => AnswerAction::ShowReminder,
                 _ => AnswerAction::BuryCard,
+            },
+            what_to_show: match i.what_to_show{
+                1 => WhatToShow::Answer,
+                _ => WhatToShow::Reminder
             },
             wait_for_audio: i.wait_for_audio,
             replayq: !i.skip_question_when_replaying_answer,

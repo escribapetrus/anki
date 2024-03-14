@@ -101,6 +101,11 @@ message DeckConfig {
       ANSWER_ACTION_SHOW_REMINDER = 4;
     }
 
+    enum WhatToShow {
+      ANSWER = 0;
+      REMINDER = 1;      
+    }  
+
     repeated float learn_steps = 1;
     repeated float relearn_steps = 2;
 
@@ -159,6 +164,7 @@ message DeckConfig {
     reserved 39;
     float sm2_retention = 40;
     string weight_search = 45;
+    WhatToShow what_to_show = 47;
 
     bytes other = 255;
   }

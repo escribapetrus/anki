@@ -27,6 +27,10 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     const defaults = state.defaults;
 
     const settings = {
+        whatToShow: {
+            title: tr.deckConfigAutoAdvanceWhatToShow(),
+            title: tr.deckConfigAutoAdvanceWhatToShowTooltip()
+        },
         secondsToShowQuestion: {
             title: tr.deckConfigSecondsToShowQuestion(),
             help: tr.deckConfigSecondsToShowQuestionTooltip2(),
@@ -114,7 +118,20 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
                 </SettingTitle>
             </SwitchRow>
         </Item>
-
+        <Item>
+            <EnumSelectorRow
+                bind:value={$config.whatToShow}
+                defaultValue={defaults.whatToShow}
+                choices={autoAdvanceWhatToShowChoices()}
+            >
+                <SettingTitle
+                    on:click={() =>
+                             openHelpModal(Object.keys(settings).indexOf("whatToShow"))}
+                    >
+                    {settings.whatToShow.title}
+                </SettingTitle>
+            </EnumSelectorRow>
+        </Item>
         <Item>
             <EnumSelectorRow
                 bind:value={$config.answerAction}

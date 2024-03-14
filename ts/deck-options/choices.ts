@@ -9,6 +9,7 @@ import {
     DeckConfig_Config_NewCardSortOrder,
     DeckConfig_Config_ReviewCardOrder,
     DeckConfig_Config_ReviewMix,
+    DeckConfig_Config_WhatToShow,
 } from "@tslib/anki/deck_config_pb";
 import * as tr from "@tslib/ftl";
 import type { Choice } from "components/EnumSelector.svelte";
@@ -180,6 +181,19 @@ export function answerChoices(): Choice<DeckConfig_Config_AnswerAction>[] {
         {
             label: tr.deckConfigShowReminder(),
             value: DeckConfig_Config_AnswerAction.SHOW_REMINDER,
+        },
+    ];
+}
+
+export function autoAdvanceWhatToShowChoices(): Choice<DeckConfig_Config_AnswerAction>[] {
+    return [
+        {
+            label: tr.deckConfigWhatToShowChoiceAnswer(),
+            value: DeckConfig_Config_WhatToShow.ANSWER,
+        },
+        {
+            label: tr.deckConfigWhatToShowChoiceReminder(),
+            value: DeckConfig_Config_WhatToShow.REMINDER,
         },
     ];
 }
