@@ -31,7 +31,14 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     import { drawCursor } from "./tools/tool-cursor";
     import { removeUnfinishedPolygon } from "./tools/tool-polygon";
     import { undoRedoTools, undoStack } from "./tools/tool-undo-redo";
-    import { disableZoom, enableZoom } from "./tools/tool-zoom";
+    import {
+        disablePan,
+        disableZoom,
+        enablePan,
+        enableZoom,
+        onWheelDrag,
+        onWheelDragX,
+    } from "./tools/tool-zoom";
 
     export let canvas;
     export let iconSize;
@@ -50,74 +57,95 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
     });
 
     // handle zoom event when mouse scroll and ctrl key are hold for panzoom
-    let clicked = false;
-    let dbclicked = false;
+    let spaceClicked = false;
+    let controlClicked = false;
+    let shiftClicked = false;
     let move = false;
-    let wheel = false;
+    const spaceKey = " ";
+    const controlKey = "Control";
+    const shiftKey = "Shift";
 
     onMount(() => {
-        window.addEventListener("mousedown", (event) => {
-            if (event.ctrlKey) {
-                clicked = true;
+        window.addEventListener("mousedown", () => {
+            window.addEventListener("keydown", (ev) => {
+                if (ev.key === spaceKey) {
+                    spaceClicked = true;
+                }
+            });
+        });
+        window.addEventListener("mousemove", () => {
+            if (spaceClicked || move) {
+                disableFunctions();
+                enablePan(canvas);
             }
         });
-        window.addEventListener("mouseup", (event) => {
-            if (event.ctrlKey) {
-                clicked = false;
+        window.addEventListener("mouseup", () => {
+            if (spaceClicked) {
+                spaceClicked = false;
+            }
+            if (move) {
+                move = false;
+            }
+            disableFunctions();
+            handleToolChanges(activeTool);
+        });
+        window.addEventListener("keyup", (event) => {
+            if (
+                event.key === spaceKey ||
+                event.key === controlKey ||
+                event.key === shiftKey
+            ) {
+                spaceClicked = false;
+                controlClicked = false;
+                shiftClicked = false;
+                move = false;
+
+                disableFunctions();
+                handleToolChanges(activeTool);
             }
         });
-        window.addEventListener("mousemove", (event) => {
-            if (event.ctrlKey) {
-                move = true;
+        window.addEventListener("keydown", (event) => {
+            if (event.key === spaceKey) {
+                spaceClicked = true;
+            }
+            if (event.key === controlKey) {
+                controlClicked = true;
+            }
+            if (event.key === shiftKey) {
+                shiftClicked = true;
             }
         });
         window.addEventListener("wheel", (event) => {
             if (event.ctrlKey) {
-                wheel = true;
+                controlClicked = true;
+            }
+            if (event.shiftKey) {
+                shiftClicked = true;
             }
         });
-        window.addEventListener("dblclick", (event) => {
-            if (event.ctrlKey) {
-                dbclicked = true;
-            }
-        });
-        window.addEventListener("keyup", (event) => {
-            if (event.key == "Control") {
-                clicked = false;
-                move = false;
-                wheel = false;
-                dbclicked = false;
-            }
-        });
-        window.addEventListener("keydown", (event) => {
-            if (event.key == "Control") {
-                clicked = false;
-                move = false;
-                wheel = false;
-                dbclicked = false;
-            }
-        });
-        window.addEventListener("keydown", (event) => {
-            if (event.key == "Control" && activeTool != "magnify") {
-                stopDraw(canvas);
-                enableZoom(canvas);
-            }
-        });
-        window.addEventListener("keyup", (event) => {
-            if (event.key == "Control" && activeTool != "magnify") {
-                disableFunctions();
-            }
-        });
-        window.addEventListener("wheel", () => {
-            if (clicked && move && wheel && !dbclicked) {
-                stopDraw(canvas);
-                enableZoom(canvas);
-            }
-        });
+        window.addEventListener(
+            "wheel",
+            (event) => {
+                event.preventDefault();
+
+                if (controlClicked) {
+                    disableFunctions();
+                    enableZoom(canvas);
+                    return;
+                }
+
+                if (shiftClicked) {
+                    onWheelDragX(canvas, event);
+                    return;
+                }
+
+                onWheelDrag(canvas, event);
+            },
+            { passive: false },
+        );
     });
 
-    // handle tool changes after initialization
-    $: if (canvas) {
+    const handleToolChanges = (activeTool: string) => {
         disableFunctions();
         enableSelectable(canvas, true);
         // remove unfinished polygon when switching to other tools
@@ -126,10 +154,6 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
         switch (activeTool) {
             case "cursor":
                 drawCursor(canvas);
-                break;
-            case "magnify":
-                enableZoom(canvas);
-                enableSelectable(canvas, false);
                 break;
             case "draw-rectangle":
                 drawRectangle(canvas);
@@ -146,11 +170,17 @@ License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
             default:
                 break;
         }
+    };
+
+    // handle tool changes after initialization
+    $: if (canvas) {
+        handleToolChanges(activeTool);
     }
 
     const disableFunctions = () => {
         stopDraw(canvas);
         disableZoom(canvas);
+        disablePan(canvas);
     };
 
     function changeOcclusionType(occlusionType: "all" | "one"): void {
